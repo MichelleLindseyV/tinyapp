@@ -1,16 +1,27 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+
 const app = express();
 const PORT = 8080;
 
 app.set('view engine', 'ejs');
 
-const bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.post('/urls', (req, res) => {
-  console.log(req.body);
-  res.send('Ok');
-});
+
+function generateRandomString(stringLength, characters) {
+  let newString = '';
+  for (let i = stringLength; i > 0; i --) {
+    newString += characters[Math.floor(Math.random() * characters.length)];
+  }
+  return newString;
+};
+generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+//Was confused about this function and researched for better understaining -- > (Reference: https://www.geeksforgeeks.org/generate-random-alpha-numeric-string-in-javascript/)
+
+
+
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -20,6 +31,20 @@ const urlDatabase = {
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
+});
+
+app.post('/urls', (req, res) => {
+  let value = req.body.longURL;
+  let key = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+ urlDatabase[key] =  value;
+ console.log(value);
+ res.redirect(`/urls/${key}`);
+});
+
+app.get('/u/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL];
+  res.redirect(longURL);
 });
 
 app.get('/urls/new', (req, res) => {
