@@ -34,7 +34,7 @@ const urlDatabase = {
 
 
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render('urls_index', templateVars);
 });
 
@@ -53,11 +53,12 @@ app.get('/u/:shortURL', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  res.render('urls_new');
+  const templateVars = { username: req.cookies["username"] };
+  res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
   res.render('urls_show', templateVars);
 });
 
@@ -74,15 +75,14 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls/');
 });
 
-//POST route to handle username submission
+//POST route to handle username submission and store in cookie
 app.post('/login', (req, res) => {
   let userName = req.body.username;
-  console.log(`Username: ${userName}`);
   res.cookie('username', userName);
-  console.log('cookie is:', req.cookies['username']);
-  console.log('signed cookie:', req.signedCookie);
   res.redirect('/urls');
 });
+
+
 
 
 app.listen(PORT, () => {
