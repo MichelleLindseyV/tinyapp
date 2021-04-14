@@ -9,6 +9,7 @@ app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({extended: true}));
 
 
+
 function generateRandomString(stringLength, characters) {
   let newString = '';
   for (let i = stringLength; i > 0; i --) {
@@ -22,17 +23,20 @@ generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
 
 
 
-
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+
+
 
 app.get('/urls', (req, res) => {
   const templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
 });
 
+//POST to generate random short URL for a given long URL
 app.post('/urls', (req, res) => {
   let value = req.body.longURL;
   let key = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
@@ -55,6 +59,14 @@ app.get('/urls/:shortURL', (req, res) => {
   res.render('urls_show', templateVars);
 });
 
+//POST request to update URL resource in the database
+app.post('/urls/:shortURL', (req, res) => {
+  let shortURL = req.params.shortURL;
+  urlDatabase[shortURL] = req.body.newLongURL
+  res.redirect(`/urls`);
+});
+
+//POST request to delete an existing URL key: value pair from database
 app.post('/urls/:shortURL/delete', (req, res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls/');
