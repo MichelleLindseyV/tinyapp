@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = 8080;
@@ -7,6 +8,7 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({extended: true}));
+app.use(cookieParser());
 
 
 
@@ -72,6 +74,15 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls/');
 });
 
+//POST route to handle username submission
+app.post('/login', (req, res) => {
+  let userName = req.body.username;
+  console.log(`Username: ${userName}`);
+  res.cookie('username', userName);
+  console.log('cookie is:', req.cookies['username']);
+  console.log('signed cookie:', req.signedCookie);
+  res.redirect('/urls');
+});
 
 
 app.listen(PORT, () => {
