@@ -82,7 +82,12 @@ app.post('/login', (req, res) => {
   res.redirect('/urls');
 });
 
-
+//POST route to hadle logout request
+app.post('/logout', (req, res) => {
+  let userName = req.body.username;
+  res.clearCookie('username', userName);
+  res.redirect('/urls');
+});
 
 
 app.listen(PORT, () => {
