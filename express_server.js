@@ -31,7 +31,18 @@ const urlDatabase = {
 };
 
 //Users Object
-
+const users = {
+  "randomUserOne": {
+    id: "randomUserID",
+    email: "user@example.com",
+    password: "apples"
+  },
+  "randomUserTwo": {
+    id: "randomUser2ID",
+    email: "user2@example.com",
+    password: "daschunds-rock"
+  }
+};
 
 
 //CREATE
@@ -75,6 +86,21 @@ app.get('/u/:shortURL', (req, res) => {
 
 
 
+//POST route to handle registration form data
+app.post('/register', (req, res) => {
+  let id = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+  let email = req.body.email;
+  let password = req.body.password;
+  users[id] = {
+    id,
+    email,
+    password
+  };
+  res.cookie('user_id', users[id].id);
+  res.redirect('/urls');
+});
+
+
 
 
 //POST request to update URL resource in the database
@@ -103,6 +129,9 @@ app.post('/logout', (req, res) => {
   res.clearCookie('username', userName);
   res.redirect('/urls');
 });
+
+
+
 
 
 app.listen(PORT, () => {
