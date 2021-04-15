@@ -22,6 +22,9 @@ function generateRandomString(stringLength, characters) {
 generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
 //Was confused about this function and researched for better understaining -- > (Reference: https://www.geeksforgeeks.org/generate-random-alpha-numeric-string-in-javascript/)
 
+function getUser(id) {
+
+}
 
 
 //URL Database Object
@@ -48,17 +51,21 @@ const users = {
 //CREATE
 
 app.get('/urls', (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const user = users[req.cookies['user_id']]
+  console.log(user)
+  const templateVars = { urls: urlDatabase, user: user};
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies["username"] };
+  const user = users[req.cookies['user_id']]
+  const templateVars = { user: user };
   res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], username: req.cookies["username"]};
+  const user = users[req.cookies['user_id']]
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: user};
   res.render('urls_show', templateVars);
 });
 
