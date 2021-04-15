@@ -86,6 +86,10 @@ app.get('/register', (req, res) => {
   res.render('urls_registration');
 });
 
+app.get('/login', (req, res) => {
+  res.render('urls_login');
+});
+
 
 
 
