@@ -56,7 +56,17 @@ function getUserEmail(email) {
       return users[id];
     }
   }
-  console.log(false);
+  return undefined;
+};
+
+//Access Users Database passwords
+function getUserPassword(password) {
+  for (let id in users) {
+    if (users[id].password === password) {
+      console.log(users[id]);
+      return users[id];
+    }
+  }
   return undefined;
 };
 
@@ -135,8 +145,6 @@ app.get('/u/:shortURL', (req, res) => {
 
 //POST route to handle registration form data
 app.post('/register', (req, res) => {
-  console.log(req.body.email);
-  console.log(req.body.password);
   if (req.body.email === '' || req.body.password === '') {
     return res.status(400).send('Empyt Value');
   } else if (getUserEmail(req.body.email)) {
@@ -173,11 +181,16 @@ app.post('/urls/:shortURL/delete', (req, res) => {
   res.redirect('/urls/');
 });
 
-//POST route to handle username submission and store in cookie
+//POST route to handle user login and store in cookie
 app.post('/login', (req, res) => {
-  let userName = req.body.username;
-  res.cookie('username', userName);
+  if (getUserEmail(req.body.email) && !(getUserPassword(req.body.password))) {
+    res.status(403).send('Incorrect Password');
+  } else if (getUserEmail(req.body.email) && getUserPassword(req.body.password)) {
+  res.cookie('user_ID', getUserEmail(req.body.email).id);
   res.redirect('/urls');
+} else {
+  res.status(403).send('Account Does Not Exist');
+}
 });
 
 //POST route to hadle logout request
