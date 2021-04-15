@@ -12,20 +12,6 @@ app.use(cookieParser());
 
 
 
-function generateRandomString(stringLength, characters) {
-  let newString = '';
-  for (let i = stringLength; i > 0; i --) {
-    newString += characters[Math.floor(Math.random() * characters.length)];
-  }
-  return newString;
-};
-generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
-//Was confused about this function and researched for better understaining -- > (Reference: https://www.geeksforgeeks.org/generate-random-alpha-numeric-string-in-javascript/)
-
-function getUser(id) {
-
-}
-
 
 //URL Database Object
 const urlDatabase = {
@@ -48,7 +34,34 @@ const users = {
 };
 
 
-//CREATE
+//HELPER FUNCTIONS
+
+//Generate random string
+function generateRandomString(stringLength, characters) {
+  let newString = '';
+  for (let i = stringLength; i > 0; i --) {
+    newString += characters[Math.floor(Math.random() * characters.length)];
+  }
+  return newString;
+};
+generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+//Was confused about this function and researched for better understaining -- > (Reference: https://www.geeksforgeeks.org/generate-random-alpha-numeric-string-in-javascript/)
+
+
+//Access Users Database emails
+function getUserEmail(email) {
+  for (let id in users) {
+    if (users[id].email === email) {
+      console.log(users[id]);
+      return users[id];
+    }
+  }
+  console.log(false);
+  return undefined;
+};
+
+
+
 
 app.get('/urls', (req, res) => {
   const user = users[req.cookies['user_id']]
@@ -93,9 +106,39 @@ app.get('/u/:shortURL', (req, res) => {
 
 
 
+//***OLD - Waiting for mentor feedback on the errors*** POST route to handle registration form data
+// app.post('/register', (req, res) => {
+//   let id = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+//   let email = req.body.email;
+//   let password = req.body.password;
+//   users[id] = {
+//     id,
+//     email,
+//     password
+//   };
+//   if (email === '' || password === '') {
+//     console.log('empty hit');
+//     return res.status(400).send("Empty value")
+//   }
+//   if (getUserEmail(email) === undefined) {
+//     console.log('existing user');
+//     res.cookie('user_id', users[id].id);
+//     res.redirect('/urls');
+//   } else {
+//     res.status(400).send("User already exists")
+//   }
+// });
+
 //POST route to handle registration form data
 app.post('/register', (req, res) => {
-  let id = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+  console.log(req.body.email);
+  console.log(req.body.password);
+  if (req.body.email === '' || req.body.password === '') {
+    return res.status(400).send('Empyt Value');
+  } else if (getUserEmail(req.body.email)) {
+    return res.status(400).send('User already exists');
+  } else {
+    let id = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
   let email = req.body.email;
   let password = req.body.password;
   users[id] = {
@@ -104,8 +147,11 @@ app.post('/register', (req, res) => {
     password
   };
   res.cookie('user_id', users[id].id);
-  res.redirect('/urls');
+    res.redirect('/urls');
+  }
 });
+
+
 
 
 
