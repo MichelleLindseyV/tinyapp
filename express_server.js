@@ -14,10 +14,10 @@ app.use(cookieParser());
 
 
 //URL Database Object
-const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-};
+// const urlDatabase = {
+//   "b2xVn2": "http://www.lighthouselabs.ca",
+//   "9sm5xK": "http://www.google.com"
+// };
 
 //Users Object
 const users = {
@@ -32,6 +32,13 @@ const users = {
     password: "daschunds-rock"
   }
 };
+
+//NEW URL Database Object:
+const urlDatabase = {
+  b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+};
+
 
 
 //HELPER FUNCTIONS
@@ -70,15 +77,26 @@ function getUserPassword(password) {
   return undefined;
 };
 
+//
+function filterUrlsById(userID) {
+  let result = {};
+  for (let shortUrls in urlDatabase) {
+    let urls = urlDatabase[shortUrls]
+    if (urls['userID'] === userID) {
+      result[shortUrls] = urls['longURL'];
+    }
+  }
+  return result;
+};
+
 
 
 
 app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID]
-  console.log(user)
-
-  const templateVars = { urls: urlDatabase, user: user };
+  let userURLS = filterUrlsById(userID);
+  const templateVars = { urls: userURLS, user: user };
   res.render('urls_index', templateVars);
 });
 
@@ -96,6 +114,7 @@ app.get('/urls/:shortURL', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID]
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: user };
+  console.log(urlDatabase);
   res.render('urls_show', templateVars);
 });
 
@@ -119,11 +138,19 @@ app.get('/login', (req, res) => {
 
 //POST to generate random short URL for a given long URL
 app.post('/urls', (req, res) => {
-  let value = req.body.longURL;
+  let longURL = req.body.longURL;
+  const userID = req.cookies['user_id'];
+  let value = {};
   let key = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
+  value['longURL'] = longURL;
+  value['userID'] = userID;
  urlDatabase[key] =  value;
  res.redirect(`/urls/${key}`);
 });
+
+
+
+
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
