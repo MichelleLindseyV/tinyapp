@@ -86,7 +86,10 @@ app.get('/urls/new', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID]
   const templateVars = { user: user };
+  if (userID) {
   res.render('urls_new', templateVars);
+  }
+  res.redirect('/login')
 });
 
 app.get('/urls/:shortURL', (req, res) => {
