@@ -74,30 +74,40 @@ function getUserPassword(password) {
 
 
 app.get('/urls', (req, res) => {
-  const user = users[req.cookies['user_id']]
+  const userID = req.cookies['user_id'];
+  const user = users[userID]
   console.log(user)
-  const templateVars = { urls: urlDatabase, user: user};
+
+  const templateVars = { urls: urlDatabase, user: user };
   res.render('urls_index', templateVars);
 });
 
 app.get('/urls/new', (req, res) => {
-  const user = users[req.cookies['user_id']]
+  const userID = req.cookies['user_id'];
+  const user = users[userID]
   const templateVars = { user: user };
   res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const user = users[req.cookies['user_id']]
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: user};
+  const userID = req.cookies['user_id'];
+  const user = users[userID]
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: user };
   res.render('urls_show', templateVars);
 });
 
 app.get('/register', (req, res) => {
-  res.render('urls_registration');
+  const userID = req.cookies['user_id'];
+  const user = users[userID]
+  const templateVars = { user: user };
+  res.render('urls_registration', templateVars);
 });
 
 app.get('/login', (req, res) => {
-  res.render('urls_login');
+  const userID = req.cookies['user_id'];
+  const user = users[userID]
+  const templateVars = { user: user };
+  res.render('urls_login', templateVars);
 });
 
 
@@ -183,20 +193,22 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 //POST route to handle user login and store in cookie
 app.post('/login', (req, res) => {
+  console.log('it hit');
   if (getUserEmail(req.body.email) && !(getUserPassword(req.body.password))) {
     res.status(403).send('Incorrect Password');
   } else if (getUserEmail(req.body.email) && getUserPassword(req.body.password)) {
-  res.cookie('user_ID', getUserEmail(req.body.email).id);
+    console.log(getUserEmail(req.body.email));
+  res.cookie('user_id', getUserEmail(req.body.email).id);
   res.redirect('/urls');
 } else {
   res.status(403).send('Account Does Not Exist');
 }
 });
 
-//POST route to hadle logout request
+//POST route to handle logout request
 app.post('/logout', (req, res) => {
-  let userName = req.body.username;
-  res.clearCookie('username', userName);
+  let userID = getUserEmail(req.body.email);
+  res.clearCookie('user_id', userID);
   res.redirect('/urls');
 });
 
