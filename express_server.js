@@ -77,7 +77,7 @@ function getUserPassword(password) {
   return undefined;
 };
 
-//
+//Filter URLS by matching logged in userID
 function filterUrlsById(userID) {
   let result = {};
   for (let shortUrls in urlDatabase) {
@@ -97,7 +97,10 @@ app.get('/urls', (req, res) => {
   const user = users[userID]
   let userURLS = filterUrlsById(userID);
   const templateVars = { urls: userURLS, user: user };
+  if (userID) {
   res.render('urls_index', templateVars);
+  }
+  res.redirect('/login');
 });
 
 app.get('/urls/new', (req, res) => {
@@ -135,7 +138,6 @@ app.get('/login', (req, res) => {
 
 
 
-
 //POST to generate random short URL for a given long URL
 app.post('/urls', (req, res) => {
   let longURL = req.body.longURL;
@@ -151,7 +153,6 @@ app.post('/urls', (req, res) => {
 
 
 
-
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   const longURL = urlDatabase[shortURL];
@@ -160,28 +161,6 @@ app.get('/u/:shortURL', (req, res) => {
 
 
 
-//***OLD - Waiting for mentor feedback on the errors*** POST route to handle registration form data
-// app.post('/register', (req, res) => {
-//   let id = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
-//   let email = req.body.email;
-//   let password = req.body.password;
-//   users[id] = {
-//     id,
-//     email,
-//     password
-//   };
-//   if (email === '' || password === '') {
-//     console.log('empty hit');
-//     return res.status(400).send("Empty value")
-//   }
-//   if (getUserEmail(email) === undefined) {
-//     console.log('existing user');
-//     res.cookie('user_id', users[id].id);
-//     res.redirect('/urls');
-//   } else {
-//     res.status(400).send("User already exists")
-//   }
-// });
 
 //POST route to handle registration form data
 app.post('/register', (req, res) => {
@@ -206,20 +185,30 @@ app.post('/register', (req, res) => {
 
 
 
-
-
 //POST request to update URL resource in the database
 app.post('/urls/:shortURL', (req, res) => {
+  const userID = req.cookies['user_id'];
+  if (userID) {
   let shortURL = req.params.shortURL;
   urlDatabase[shortURL] = req.body.newLongURL
   res.redirect(`/urls`);
+  }
+  console.log("access denied");
+  res.redirect('/login');
 });
 
 //POST request to delete an existing URL key: value pair from database
 app.post('/urls/:shortURL/delete', (req, res) => {
+  const userID = req.cookies['user_id'];
+  if (userID) {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls/');
+  }
+  console.log("access denied");
+  res.redirect('/login');
 });
+
+
 
 //POST route to handle user login and store in cookie
 app.post('/login', (req, res) => {
