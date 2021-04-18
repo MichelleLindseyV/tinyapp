@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cookieSession = require('cookie-session')
 //const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+// const helperFuncs = require('./helpers');
 
 const app = express();
 const PORT = 8080;
@@ -64,7 +65,6 @@ function getUserEmail(email) {
   }
   return null;
 };
-
 
 //Access Users Database passwords
 function getUserPassword(browserPassword) {
@@ -201,14 +201,17 @@ app.post('/register', (req, res) => {
 //POST request to update URL resource in the database
 app.post('/urls/:shortURL', (req, res) => {
   const userID = req.session.user_id;
+  console.log(userID);
   console.log('edit id', userID)
   if (userID) {
   let shortURL = req.params.shortURL;
+  console.log('what is this:', shortURL);
   urlDatabase[shortURL] = req.body.newLongURL
   res.redirect(`/urls`);
-  }
+  } else {
   console.log("access denied");
   res.redirect('/login');
+  }
 });
 
 
@@ -246,13 +249,10 @@ app.post('/login', (req, res) => {
 
 //POST route to handle logout request
 app.post('/logout', (req, res) => {
-  console.log('body contents logout:', req.body.email);
   let userID = getUserEmail(req.body.email);
   req.session = null;
-  // res.clearCookie('user_id', userID);
   res.redirect('/urls');
 });
-
 
 
 
