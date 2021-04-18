@@ -14,13 +14,6 @@ app.use(cookieParser());
 
 
 
-
-//URL Database Object
-// const urlDatabase = {
-//   "b2xVn2": "http://www.lighthouselabs.ca",
-//   "9sm5xK": "http://www.google.com"
-// };
-
 //Users Object
 const users = {
   "randomUserOne": {
@@ -62,11 +55,12 @@ function getUserEmail(email) {
   for (let id in users) {
     if (users[id].email === email) {
       console.log(users[id]);
-      return users[id].email;
+      return users[id];
     }
   }
-  return false;
+  return null;
 };
+
 
 //Access Users Database passwords
 function getUserPassword(browserPassword) {
@@ -82,7 +76,6 @@ function getUserPassword(browserPassword) {
   return false;
 };
 
-//bcrypt.compareSync(users[id].password, hashedPassword);
 
 //Filter URLS by matching logged in userID
 function filterUrlsById(userID) {
@@ -129,7 +122,7 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID]
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL], user: user };
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, user: user };
   console.log(urlDatabase);
   res.render('urls_show', templateVars);
 });
@@ -143,8 +136,6 @@ app.get('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   const userID = req.cookies['user_id'];
-  console.log('cookie', req.cookies['user_id']);
-  console.log('userID:', userID);
   const user = users[userID]
   const templateVars = { user: user };
   res.render('urls_login', templateVars);
@@ -196,14 +187,11 @@ app.post('/register', (req, res) => {
     email,
     password: hashedPassword
   };
-  console.log('userid', users[id].id);
+  console.log('userid cookie:', users[id].id);
   res.cookie('user_id', users[id].id);
     res.redirect('/urls');
   }
 });
-
-
-
 
 
 //POST request to update URL resource in the database
@@ -218,6 +206,7 @@ app.post('/urls/:shortURL', (req, res) => {
   res.redirect('/login');
 });
 
+
 //POST request to delete an existing URL key: value pair from database
 app.post('/urls/:shortURL/delete', (req, res) => {
   const userID = req.cookies['user_id'];
@@ -230,13 +219,10 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 });
 
 
-
 //POST route to handle user login and store in cookie
 app.post('/login', (req, res) => {
   let bodyEmail = req.body.email;
   let bodyPassword = req.body.password;
-  let bodyID = req.body
-  console.log('what is this', bodyID);
   let userEmail = getUserEmail(bodyEmail);
   let userPassword = getUserPassword(bodyPassword);
 
@@ -252,8 +238,10 @@ app.post('/login', (req, res) => {
 }
 });
 
+
 //POST route to handle logout request
 app.post('/logout', (req, res) => {
+  console.log('body contents logout:', req.body.email);
   let userID = getUserEmail(req.body.email);
   res.clearCookie('user_id', userID);
   res.redirect('/urls');
