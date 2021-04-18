@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 
 const app = express();
 const PORT = 8080;
@@ -9,6 +10,7 @@ app.set('view engine', 'ejs');
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
+
 
 
 
@@ -24,7 +26,7 @@ const users = {
   "randomUserOne": {
     id: "randomUserID",
     email: "user@example.com",
-    password: "apples"
+    password: "$2b$10$DXG/ne.DGRUYBXtwmWpqsOFKdg12fGs31zzn8YWQwZkXmsN6nzMhW"
   },
   "randomUserTwo": {
     id: "randomUser2ID",
@@ -60,22 +62,27 @@ function getUserEmail(email) {
   for (let id in users) {
     if (users[id].email === email) {
       console.log(users[id]);
-      return users[id];
+      return users[id].email;
     }
   }
-  return undefined;
+  return false;
 };
 
 //Access Users Database passwords
-function getUserPassword(password) {
+function getUserPassword(browserPassword) {
+  console.log('browser password', browserPassword);
   for (let id in users) {
-    if (users[id].password === password) {
+    let passwordToCompare = users[id].password;
+    console.log('compare password', passwordToCompare);
+    if (bcrypt.compareSync(browserPassword, passwordToCompare)) {
       console.log(users[id]);
-      return users[id];
+      return true;
     }
   }
-  return undefined;
+  return false;
 };
+
+//bcrypt.compareSync(users[id].password, hashedPassword);
 
 //Filter URLS by matching logged in userID
 function filterUrlsById(userID) {
@@ -92,15 +99,20 @@ function filterUrlsById(userID) {
 
 
 
+
+//ROUTES
+
 app.get('/urls', (req, res) => {
   const userID = req.cookies['user_id'];
   const user = users[userID]
   let userURLS = filterUrlsById(userID);
   const templateVars = { urls: userURLS, user: user };
-  if (userID) {
+  if (userID === undefined) {
+    res.redirect('/login');
+  } else {
   res.render('urls_index', templateVars);
   }
-  res.redirect('/login');
+  
 });
 
 app.get('/urls/new', (req, res) => {
@@ -109,8 +121,9 @@ app.get('/urls/new', (req, res) => {
   const templateVars = { user: user };
   if (userID) {
   res.render('urls_new', templateVars);
-  }
+  } else {
   res.redirect('/login')
+  }
 });
 
 app.get('/urls/:shortURL', (req, res) => {
@@ -130,6 +143,8 @@ app.get('/register', (req, res) => {
 
 app.get('/login', (req, res) => {
   const userID = req.cookies['user_id'];
+  console.log('cookie', req.cookies['user_id']);
+  console.log('userID:', userID);
   const user = users[userID]
   const templateVars = { user: user };
   res.render('urls_login', templateVars);
@@ -164,23 +179,29 @@ app.get('/u/:shortURL', (req, res) => {
 
 //POST route to handle registration form data
 app.post('/register', (req, res) => {
-  if (req.body.email === '' || req.body.password === '') {
-    return res.status(400).send('Empyt Value');
-  } else if (getUserEmail(req.body.email)) {
+  let bodyEmail = req.body.email;
+  let bodyPassword = req.body.password;
+  if (bodyEmail === '' || bodyPassword === '') {
+    return res.status(400).send('Empty Value');
+  } else if (getUserEmail(bodyEmail)) {
     return res.status(400).send('User already exists');
   } else {
     let id = generateRandomString(6, 'abcdefghijklmnopqrstuvwxyz1234567890');
-  let email = req.body.email;
-  let password = req.body.password;
+  let email = bodyEmail;
+  let password = bodyPassword;
+  let hashedPassword = bcrypt.hashSync(password, 10);
+  console.log('hash password:', hashedPassword);
   users[id] = {
     id,
     email,
-    password
+    password: hashedPassword
   };
+  console.log('userid', users[id].id);
   res.cookie('user_id', users[id].id);
     res.redirect('/urls');
   }
 });
+
 
 
 
@@ -212,13 +233,20 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 
 //POST route to handle user login and store in cookie
 app.post('/login', (req, res) => {
-  console.log('it hit');
-  if (getUserEmail(req.body.email) && !(getUserPassword(req.body.password))) {
+  let bodyEmail = req.body.email;
+  let bodyPassword = req.body.password;
+  let bodyID = req.body
+  console.log('what is this', bodyID);
+  let userEmail = getUserEmail(bodyEmail);
+  let userPassword = getUserPassword(bodyPassword);
+
+  if (userEmail && !userPassword) {
     res.status(403).send('Incorrect Password');
-  } else if (getUserEmail(req.body.email) && getUserPassword(req.body.password)) {
-    console.log(getUserEmail(req.body.email));
-  res.cookie('user_id', getUserEmail(req.body.email).id);
+
+  } else if (userEmail && userPassword) {
+  res.cookie('user_id', userEmail.id);
   res.redirect('/urls');
+
 } else {
   res.status(403).send('Account Does Not Exist');
 }
